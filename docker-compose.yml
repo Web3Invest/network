@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  traefik:
+    hostname: traefik.devbox
+    image: traefik:latest
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    networks:
+      - webgateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --accesslog=true
+      - --log.level=INFO
+      - --api=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --metrics.prometheus=true
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addrouterslabels=true
+      - --metrics.prometheus.addServicesLabels=true
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=web
+      - traefik.http.routers.traefik.rule=Host(`network.testnet.web3invest.fr`)
+
+networks:
+  webgateway:
+    driver: bridge
