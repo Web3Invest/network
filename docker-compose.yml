@@ -12,6 +12,7 @@ services:
       - webgateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
     command:
       - --accesslog=true
       - --log.level=INFO
@@ -20,6 +21,13 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
       - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls.certresolver=w3i_ssl
+      - --certificatesresolvers.w3i_ssl.acme.email=contact@web3invest.fr
+      - --certificatesresolvers.w3i_ssl.acme.tlschallenge=true
+      - --certificatesresolvers.w3i_ssl.acme.storage=/letsencrypt/acme.json
+      - --entryPoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --metrics.prometheus=true
       - --metrics.prometheus.addEntryPointsLabels=true
       - --metrics.prometheus.addrouterslabels=true
@@ -28,9 +36,13 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik.service=api@internal
-      - traefik.http.routers.traefik.entrypoints=web
+      - traefik.http.routers.traefik.entrypoints=web,websecure
+      - traefik.http.routers.traefik.tls.certresolver=w3i_ssl
       - traefik.http.routers.traefik.rule=Host(`network.testnet.web3invest.fr`)
 
 networks:
   webgateway:
     driver: bridge
+
+volumes:
+  letsencrypt:

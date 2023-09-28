@@ -1,0 +1,2 @@
+# hide certificates storage directory
+/letsencrypt/
